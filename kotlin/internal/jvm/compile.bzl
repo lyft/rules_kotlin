@@ -215,7 +215,9 @@ def kt_jvm_compile_action(ctx, rule_kind, output_jar):
     tools, _, input_manifests = ctx.resolve_command(tools = [toolchain.kotlinbuilder, toolchain.kotlin_home])
     ctx.actions.run(
         mnemonic = "KotlinCompile",
-        inputs = depset(ctx.files.srcs, transitive = [compile_jars]),
+        inputs = depset(
+            ctx.files.srcs,
+            transitive = [compile_jars] + [ap.transitive_runtime_jars for ap in plugin_info.annotation_processors]),
         tools = tools,
         outputs = [
             output_jar,

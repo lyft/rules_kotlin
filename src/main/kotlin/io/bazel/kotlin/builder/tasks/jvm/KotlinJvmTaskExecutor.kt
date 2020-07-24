@@ -56,9 +56,11 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
             directories.generatedClasses
         )
         val taskWithAdditionalSources = context.execute("expand sources") { expandWithSourceJarSources() }
-        return context.execute({
-            "kapt (${inputs.processorsList.joinToString(", ")})"
-        }) { taskWithAdditionalSources.runAnnotationProcessors(context) }
+        return taskWithAdditionalSources
+        // This is kapt call
+//        return context.execute({
+//            "kapt (${inputs.processorsList.joinToString(", ")})"
+//        }) { taskWithAdditionalSources.runAnnotationProcessors(context) }
     }
 
     private fun JvmCompilationTask.produceSourceJar() {
@@ -132,7 +134,7 @@ class KotlinJvmTaskExecutor @Inject internal constructor(
                 // if tracing is enabled the output should be formatted in a special way, if we aren't tracing then any
                 // compiler output would make it's way to the console as is.
                 if (context.isTracing) {
-                    context.printLines("kapt output", outputLines)
+                    context.printLines("kapt output (not run, using napt)", outputLines)
                 }
                 expandWithGeneratedSources()
             }
