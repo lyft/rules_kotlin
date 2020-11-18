@@ -40,10 +40,7 @@ class KotlinToolchain private constructor(
     "kotlin-stdlib-jdk7.jar",
     "kotlin-stdlib-jdk8.jar"
   ),
-  val kapt3Plugin: CompilerPlugin = CompilerPlugin(
-    kotlinHome.resolveVerified("lib", "kotlin-annotation-processing.jar").absolutePath,
-    "org.jetbrains.kotlin.kapt3"
-  ),
+  val kapt3Plugin: CompilerPlugin = CompilerPlugin("", ""),
   val jvmAbiGen: CompilerPlugin,
   val skipCodeGen: CompilerPlugin,
   val jdepsGen: CompilerPlugin

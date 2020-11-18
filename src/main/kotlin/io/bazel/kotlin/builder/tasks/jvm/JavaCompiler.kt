@@ -35,7 +35,7 @@ internal class JavaCompiler @Inject constructor(
      */
     private val DIR_SEP = "${File.separatorChar}${File.pathSeparator}"
   }
-    fun compile(context: CompilationTaskContext, command: JvmCompilationTask) : List<String> {
+    fun compile(context: CompilationTaskContext, command: JvmCompilationTask): List<String> {
     val i = command.inputs
     val d = command.directories
     if (i.javaSourcesList.isNotEmpty()) {
@@ -44,13 +44,24 @@ internal class JavaCompiler @Inject constructor(
         "-d", d.javaClasses
       ).also {
         it.addAll(
-          // Kotlin takes care of annotation processing.
-          "-proc:none",
           // Disable option linting, it will complain about the source.
           "-Xlint:-options",
           "-source", command.info.toolchainInfo.jvm.jvmTarget,
-          "-target", command.info.toolchainInfo.jvm.jvmTarget
+          "-target", command.info.toolchainInfo.jvm.jvmTarget,
+          "-XDcompilePolicy=simple"
         )
+
+        // Inject napt into javac
+        val filteredProcessorsList = command.inputs.processorsList.filter { str -> str.isNotEmpty() && str.isNotBlank() }
+        if (filteredProcessorsList.isNotEmpty()) {
+            var processorpath = command.inputs.processorpathsList.joinToString(":")
+            it.addAll("-Xplugin:Napt", "-processorpath", processorpath)
+        } else {
+            // Kotlin takes care of annotation processing.
+            it.addAll("-proc:none")
+        }
+        
+        // Append the rest of the javac flags
         it.addAll(command.inputs.javacFlagsList)
         it.addAll(i.javaSourcesList)
       }
