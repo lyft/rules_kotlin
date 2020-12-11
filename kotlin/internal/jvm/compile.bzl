@@ -207,6 +207,8 @@ def _kotlinc_options_provider_to_flags(opts, language_version):
         flags.append("-Xmulti-platform")
     if opts.java_parameters:
         flags.append("-java-parameters")
+    if opts.x_opt_in:
+        flags.extend(["-Xopt-in=%s" % check for check in opts.x_opt_in])
     return flags
 
 def _validate_kotlinc_options(opts, language_version):
