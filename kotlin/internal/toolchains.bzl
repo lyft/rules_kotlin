@@ -69,6 +69,7 @@ def _kotlin_toolchain_impl(ctx):
         for jar in ctx.files.jvm_runtime
     ]
 
+
     toolchain = dict(
         language_version = ctx.attr.language_version,
         api_version = ctx.attr.api_version,
@@ -87,6 +88,7 @@ def _kotlin_toolchain_impl(ctx):
         experimental_strict_kotlin_deps = ctx.attr.experimental_strict_kotlin_deps,
         experimental_report_unused_deps = ctx.attr.experimental_report_unused_deps,
         experimental_reduce_classpath_mode = ctx.attr.experimental_reduce_classpath_mode,
+        annotation_processing_mode = ctx.attr.annotation_processing_mode,
         javac_options = ctx.attr.javac_options[JavacOptions] if ctx.attr.javac_options else None,
         kotlinc_options = ctx.attr.kotlinc_options[KotlincOptions] if ctx.attr.kotlinc_options else None,
         empty_jar = ctx.file._empty_jar,
@@ -226,6 +228,14 @@ _kt_toolchain = rule(
                 "KOTLINBUILDER_REDUCED",
             ],
         ),
+        "annotation_processing_mode": attr.string(
+            doc = "Control the annotation processing mode",
+            default = "javac",
+            values = [
+                "javac",
+                "kapt",
+            ],
+        ),
         "javac_options": attr.label(
             doc = "Compiler options for javac",
             providers = [JavacOptions],
@@ -267,6 +277,7 @@ def define_kt_toolchain(
         experimental_report_unused_deps = None,
         experimental_reduce_classpath_mode = None,
         experimental_multiplex_workers = None,
+        annotation_processing_mode = None,
         javac_options = None,
         kotlinc_options = None):
     """Define the Kotlin toolchain."""
@@ -295,6 +306,7 @@ def define_kt_toolchain(
         experimental_strict_kotlin_deps = experimental_strict_kotlin_deps,
         experimental_report_unused_deps = experimental_report_unused_deps,
         experimental_reduce_classpath_mode = experimental_reduce_classpath_mode,
+        annotation_processing_mode = annotation_processing_mode,
         javac_options = javac_options,
         kotlinc_options = kotlinc_options,
         visibility = ["//visibility:public"],

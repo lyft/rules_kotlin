@@ -541,6 +541,7 @@ def kt_jvm_produce_jar_actions(ctx, rule_kind):
         annotation_processing = outputs_struct.annotation_processing
 
     else:
+        fail("Not using ABI")
         kt_java_output_jar = ctx.actions.declare_file(ctx.label.name + "-kt-java.jar")
         kt_generated_java_srcjar = ctx.actions.declare_file(ctx.label.name + "-gensrc.jar")
 
@@ -667,8 +668,16 @@ def _run_kt_java_builder_actions(
     output_jars = []
     kt_stubs_for_java = []
 
+    # me = "{}:{}".format(ctx.label.package, ctx.label.name)
+    # if me.startswith("instant-features/rider/membership/account-linking/screens"):
+    #     for i in annotation_processors.to_list():
+    #         print("Found AP {}".format(i.processor_class))
+    #     aps = [processor.processor_class for processor in annotation_processors.to_list() if processor.processor_class]
+    #     print("Found -processor {}".format(",".join(aps)))
+
     # Run KAPT
-    if srcs.kt and annotation_processors:
+    if toolchains.kt.annotation_processing_mode == "kapt" and srcs.kt and annotation_processors:
+        fail("Running kapt!!!!!!")
         ap_generated_src_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-gensrc.jar")
         kapt_generated_stub_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-stub.jar")
         kapt_generated_class_jar = ctx.actions.declare_file(ctx.label.name + "-kapt-generated-class.jar")
@@ -711,6 +720,7 @@ def _run_kt_java_builder_actions(
         kt_jdeps = ctx.actions.declare_file(ctx.label.name + "-kt.jdeps")
         if not "kt_abi_plugin_incompatible" in ctx.attr.tags:
             kt_compile_jar = ctx.actions.declare_file(ctx.label.name + "-kt.abi.jar")
+            print(kt_compile_jar.path)
             outputs = {
                 "output": kt_runtime_jar,
                 "abi_jar": kt_compile_jar,
@@ -743,8 +753,10 @@ def _run_kt_java_builder_actions(
 
         compile_jars.append(kt_compile_jar)
         output_jars.append(kt_runtime_jar)
-        if not annotation_processors:
+        if not annotation_processors or not toolchains.kt.annotation_processing_mode == "kapt":
             kt_stubs_for_java.append(JavaInfo(compile_jar = kt_compile_jar, output_jar = kt_runtime_jar, neverlink = True))
+        else:
+            fail("Did not append")
 
         kt_java_info = JavaInfo(
             output_jar = kt_runtime_jar,
@@ -765,8 +777,20 @@ def _run_kt_java_builder_actions(
 
         # Kotlin takes care of annotation processing. Note that JavaBuilder "discovers"
         # annotation processors in `deps` also.
-        if len(srcs.kt) > 0:
+        if toolchains.kt.annotation_processing_mode == "kapt" and len(srcs.kt) > 0:
             javac_opts += ["-proc:none"]
+            fail("-proc:none")
+        elif toolchains.kt.annotation_processing_mode == "javac":
+            javac_opts += ["-XDcompilePolicy=simple"]
+            javac_opts += ["-Xplugin:Napt"]
+        else:
+            fail("else")
+
+        me = "{}:{}".format(ctx.label.package, ctx.label.name)
+        if me.startswith("instant-features/rider/membership/account-linking/screens"):
+            # javac_opts = ["-Xdebug", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:8000"] + javac_opts
+            pass
+
         java_info = java_common.compile(
             ctx,
             source_files = srcs.java,
